@@ -4,10 +4,10 @@ export type Ref = any
 export type Props = any
 export type ElementType = any
 
-export interface ReactElement {
-	$$typeof: symbol | number
-	type: ElementType
-	key: Key
-	props: Props
-	_mark: string
+export interface ReactElementType {
+  $$typeof: symbol | number
+  type: ElementType
+  key: Key
+  props: Props
+  _mark: string
 }

@@ -1,16 +1,18 @@
 import { REACT_ELEMENT_TYPE } from '../../shared/ReactSymbiols'
-import { Type, Key, Ref, Props, ReactElement, ElementType } from '../../shared/ReactType'
+import { Type, Key, Ref, Props, ReactElementType, ElementType } from '../../shared/ReactType'
 
-const ReactElement = function (type: Type, key: Key, ref: Ref, props: Props) {
+const ReactElement = function (type: Type, key: Key, ref: Ref, props: Props): ReactElementType {
   const element = {
-    $$typeof: 'xxx',
+    $$typeof: REACT_ELEMENT_TYPE,
     key,
+    type,
     ref,
     props,
     _mark: 'zfx',
   }
   return element
 }
+
 export const jsx = (type: ElementType, config: any, ...maybechildren: any) => {
   let key: Key = null
   let ref: Ref = null

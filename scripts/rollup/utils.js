@@ -13,6 +13,7 @@ export const resolvePkgPath = (name, isDist) => {
 export const getPackageJOSN = (name) => {
   const path = `${resolvePkgPath(name)}/package.json`
   const str = fs.readFileSync(path, { encoding: 'utf-8' })
+  console.log(JSON.parse(str))
   return JSON.parse(str)
 }
 
