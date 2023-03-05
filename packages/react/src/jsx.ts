@@ -1,9 +1,9 @@
-import { REACT_ELEMENT_TYPE } from '../shared/ReactSymbiols'
-import { Type, Key, Ref, Props, ReactElement, ElementType } from '../shared/ReactType'
+import { REACT_ELEMENT_TYPE } from '../../shared/ReactSymbiols'
+import { Type, Key, Ref, Props, ReactElement, ElementType } from '../../shared/ReactType'
 
 const ReactElement = function (type: Type, key: Key, ref: Ref, props: Props) {
   const element = {
-    $$typeof: xxx,
+    $$typeof: 'xxx',
     key,
     ref,
     props,
@@ -13,8 +13,8 @@ const ReactElement = function (type: Type, key: Key, ref: Ref, props: Props) {
 }
 export const jsx = (type: ElementType, config: any, ...maybechildren: any) => {
   let key: Key = null
+  let ref: Ref = null
   const props: Props = {}
-  const ref: Ref = null
   for (const prop in config) {
     const val = config[key]
     if (props !== 'key' && !val) {
