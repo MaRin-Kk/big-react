@@ -1,4 +1,5 @@
 import { Props, Key, Ref } from 'shared/ReactType'
+import { Flags, NoFlags } from './fiberFlags'
 import { WorkTag } from './workTags'
 
 export class FiberNode {
@@ -15,7 +16,7 @@ export class FiberNode {
   index: number
   memoizedProps: Props | null
   alternate: FiberNode | null
-
+  flags: Flags
   constructor(tag: WorkTag, pendingProps: Props, key: Key) {
     // 实例
     this.tag = tag
@@ -38,5 +39,8 @@ export class FiberNode {
     this.memoizedProps = null
 
     this.alternate = null
+
+    // 副作用
+    this.flags = NoFlags
   }
 }
