@@ -18,4 +18,6 @@ module.exports = {
   // 缩进字节数
   tabWidth: 2,
   // quoteProps: 'as-needed',
+  // 末尾逗号
+  trailingComma: 'none',
 }
