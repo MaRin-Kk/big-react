@@ -30,7 +30,7 @@ export const enqueueUpdate = <Action>(updateQueue: UpdateQueue<Action>, update: 
 }
 
 // 正在消费的update
-const processUpdateQueue = <State>(
+export const processUpdateQueue = <State>(
   baseUpdate: State,
   pendingUpdate: Update<State> | null
 ): { memoizedState: State } => {
