@@ -40,7 +40,7 @@ export const jsx = (type: ElementType, config: any, ...maybechildren: any) => {
   return ReactElement(type, key, ref, props)
 }
 
-export const jsxDev = (type: ElementType, config: any) => {
+export const jsxDEV = (type: ElementType, config: any) => {
   let key: Key = null
   let ref: Ref = null
   const props: Props = {}

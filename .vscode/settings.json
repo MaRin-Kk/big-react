@@ -1,0 +1,7 @@
+{
+  "search.actionsPosition": "auto",
+  "search.followSymlinks": true,
+  "debug.confirmOnExit": "never",
+  "search.defaultViewMode": "list",
+  "search.experimental.notebookSearch": false
+}
