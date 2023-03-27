@@ -8,7 +8,7 @@ const ReactElement = function (type: Type, key: Key, ref: Ref, props: Props): Re
     type,
     ref,
     props,
-    _mark: 'zfx',
+    _mark: 'zfx'
   }
   return element
 }

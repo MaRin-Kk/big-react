@@ -1,7 +1,7 @@
-import { getPackageJOSN, resolvePkgPath, getBaseRollupPlugins } from './utils'
+import { getPackageJSON, resolvePkgPath, getBaseRollupPlugins } from './utils'
 import generatePackageJson from 'rollup-plugin-generate-package-json'
 import alias from '@rollup/plugin-alias'
-const { name, module } = getPackageJOSN('react-dom')
+const { name, module } = getPackageJSON('react-dom')
 //react-dom 包的路径
 const pkgPath = resolvePkgPath(name)
 //react-dom 产物路径

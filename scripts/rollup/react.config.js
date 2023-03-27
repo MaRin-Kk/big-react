@@ -1,6 +1,6 @@
-import { getPackageJOSN, resolvePkgPath, getBaseRollupPlugins } from './utils'
+import { getPackageJSON, resolvePkgPath, getBaseRollupPlugins } from './utils'
 import generatePackageJson from 'rollup-plugin-generate-package-json'
-const { name, module } = getPackageJOSN('react')
+const { name, module } = getPackageJSON('react')
 //react 包的路径
 const pkgPath = resolvePkgPath(name)
 //react 产物路径
@@ -12,7 +12,7 @@ export default [
     output: {
       file: `${pkgDistPath}/index.js`,
       name: 'index.js',
-      format: 'umd',
+      format: 'umd'
     },
     plugins: [
       ...getBaseRollupPlugins(),
@@ -23,26 +23,26 @@ export default [
           name,
           description,
           version,
-          main: 'index.js',
-        }),
-      }),
-    ],
+          main: 'index.js'
+        })
+      })
+    ]
   },
   // jsx-runtime
   {
     input: `${pkgPath}/src/jsx.ts`,
     output: [
       {
-        file: `${pkgDistPath}/jsx-runtime.js`,
-        name: 'jsx-runtime.js',
-        format: 'umd',
-      },
-      {
         file: `${pkgDistPath}/jsx-dev-runtime.js`,
         name: 'jsx-dev-runtime.js',
-        format: 'umd',
+        format: 'umd'
       },
+      {
+        file: `${pkgDistPath}/jsx-runtime.js`,
+        name: 'jsx-runtime.js',
+        format: 'umd'
+      }
     ],
-    plugins: getBaseRollupPlugins(),
-  },
+    plugins: getBaseRollupPlugins()
+  }
 ]
