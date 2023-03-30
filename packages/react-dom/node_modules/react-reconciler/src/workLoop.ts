@@ -33,7 +33,6 @@ function markUpdateFormFiberToRoot(fiber: FiberNode) {
 function renderRoot(root: FiberRootNode) {
   //  初始化
   prepareFreshStack(root)
-
   do {
     try {
       workLoop()
@@ -88,6 +87,8 @@ function performUnitOfWork(fiber: FiberNode) {
   fiber.memoizedProps = fiber.pendingProps
   if (next === null) {
     completeUnitOfWork(fiber)
+  } else {
+    workInProgress = next
   }
 }
 

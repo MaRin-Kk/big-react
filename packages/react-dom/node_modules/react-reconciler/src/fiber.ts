@@ -59,10 +59,10 @@ export class FiberRootNode {
   container: Container
   current: FiberNode
   finshedWork: FiberNode | null
-  constructor(container: Container, hostRooterFiber: FiberNode) {
+  constructor(container: Container, hostRootFiber: FiberNode) {
     this.container = container
-    this.current = hostRooterFiber
-    hostRooterFiber.stateNode = this
+    this.current = hostRootFiber
+    hostRootFiber.stateNode = this
     this.finshedWork = null
   }
 }
@@ -73,7 +73,6 @@ export const creatWorkInProgress = (current: FiberNode, pendingProps: Props) => 
   if (wip === null) {
     // mount
     wip = new FiberNode(current.tag, pendingProps, current.key)
-    wip.type = current.type
     wip.stateNode = current.stateNode
 
     wip.alternate = current
@@ -83,13 +82,13 @@ export const creatWorkInProgress = (current: FiberNode, pendingProps: Props) => 
     wip.pendingProps = pendingProps
     wip.flags = NoFlags
     wip.subtreeFlags = NoFlags
-
-    wip.type = current.type
-    wip.updateQueue = current.updateQueue
-    wip.child = current.child
-    wip.memoizedProps = current.memoizedProps
-    wip.memoizedState = current.memoizedState
   }
+
+  wip.type = current.type
+  wip.updateQueue = current.updateQueue
+  wip.child = current.child
+  wip.memoizedProps = current.memoizedProps
+  wip.memoizedState = current.memoizedState
   return wip
 }
 

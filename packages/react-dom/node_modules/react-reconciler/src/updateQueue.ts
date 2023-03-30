@@ -10,13 +10,13 @@ export interface UpdateQueue<State> {
     pending: Update<State> | null
   }
 }
-export const creatUpdate = <State>(action: Action<State>): Update<State> => {
+export const createUpdate = <State>(action: Action<State>): Update<State> => {
   return {
     action
   }
 }
 
-export const creatUpdateQueue = <Action>() => {
+export const createUpdateQueue = <Action>() => {
   return {
     shared: {
       pending: null
@@ -31,15 +31,14 @@ export const enqueueUpdate = <Action>(updateQueue: UpdateQueue<Action>, update: 
 
 // 正在消费的update
 export const processUpdateQueue = <State>(
-  baseUpdate: State,
+  baseState: State,
   pendingUpdate: Update<State> | null
 ): { memoizedState: State } => {
-  const result: ReturnType<typeof processUpdateQueue<State>> = { memoizedState: baseUpdate }
-
+  const result: ReturnType<typeof processUpdateQueue<State>> = { memoizedState: baseState }
   if (pendingUpdate) {
     const action = pendingUpdate.action
     if (action instanceof Function) {
-      result.memoizedState = action(baseUpdate)
+      result.memoizedState = action(baseState)
     } else {
       result.memoizedState = action
     }

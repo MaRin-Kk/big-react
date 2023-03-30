@@ -19,8 +19,9 @@ function ChildReconciler(shoukdTrackEffects: boolean) {
     return fiber
   }
 
+  // 插入单一的节点
   function placeSingleChild(fiber: FiberNode) {
-    if (shoukdTrackEffects && fiber.alternate) {
+    if (shoukdTrackEffects && fiber.alternate === null) {
       // 首屏渲染
       fiber.flags |= Placement
     }
