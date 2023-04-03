@@ -18,12 +18,12 @@ export const jsx = (type: ElementType, config: any, ...maybechildren: any) => {
   let ref: Ref = null
   const props: Props = {}
   for (const prop in config) {
-    const val = config[key]
-    if (props !== 'key' && !val) {
+    const val = config[prop]
+    if (props === 'key' && val !== undefined) {
       key = '' + val
       continue
     }
-    if (prop === 'ref' && !val) {
+    if (prop === 'ref' && val !== undefined) {
       ref = val
       continue
     }
@@ -45,12 +45,12 @@ export const jsxDEV = (type: ElementType, config: any) => {
   let ref: Ref = null
   const props: Props = {}
   for (const prop in config) {
-    const val = config[key]
-    if (props !== 'key' && !val) {
+    const val = config[prop]
+    if (props === 'key' && val !== undefined) {
       key = '' + val
       continue
     }
-    if (prop === 'ref' && !val) {
+    if (prop === 'ref' && val !== undefined) {
       ref = val
       continue
     }
