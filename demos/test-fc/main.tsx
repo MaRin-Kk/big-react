@@ -16,8 +16,6 @@ const jsx = (
     hello <span>dsb</span>
   </div>
 )
-console.log(React);
-console.log(jsx);
-console.log(ReactDOM);
+
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(<App />)

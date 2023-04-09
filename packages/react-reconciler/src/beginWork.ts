@@ -48,7 +48,7 @@ function updateHostRoot(wip: FiberNode) {
 
 function updateHostComponent(wip: FiberNode) {
   const nextProps = wip.pendingProps
-  const nextChildren = nextProps.child
+  const nextChildren = nextProps.children
   recocnileChildren(wip, nextChildren)
 
   return wip.child

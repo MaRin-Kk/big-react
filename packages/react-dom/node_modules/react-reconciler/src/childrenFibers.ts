@@ -53,6 +53,9 @@ function ChildReconciler(shoukdTrackEffects: boolean) {
     if (typeof newChild === 'string' || typeof newChild === 'number') {
       return placeSingleChild(reconcileTextNode(returnFiber, currentFiber, newChild))
     }
+    if (__DEV__) {
+      console.warn('未实现的reconcile类型', newChild, shoukdTrackEffects)
+    }
     return null
   }
 }
