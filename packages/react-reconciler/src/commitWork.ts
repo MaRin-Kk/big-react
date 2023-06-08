@@ -1,6 +1,13 @@
 import { FiberNode, FiberRootNode } from './fiber'
 import { ChildDeletion, MutationMask, NoFlags, Placement, Update } from './fiberFlags'
-import { appendChildToContainer, commitUpdate, Container, removeChild } from 'hostConfig'
+import {
+  appendChildToContainer,
+  commitUpdate,
+  Container,
+  inserChildToContainer,
+  Instance,
+  removeChild
+} from 'hostConfig'
 import { FuntionComponent, HostComponent, HostRoot, HostText } from './workTags'
 let nextEffect: FiberNode | null = null
 export function commitMutationEffects(finshedWork: FiberNode) {
@@ -115,8 +122,38 @@ const commitPlacement = (finishedWork: FiberNode) => {
   }
   // parent DOM
   const hostParent = getHostParent(finishedWork)
+
+  const sibling = getHostSibling(finishedWork)
+
   if (hostParent) {
-    appendPlacementNodeIntoContainer(finishedWork, hostParent)
+    appendPlacementNodeIntoContainer(finishedWork, hostParent, sibling)
+  }
+}
+
+const getHostSibling = (fiber: FiberNode) => {
+  findSibling: while (true) {
+    while (fiber.sibling === null) {
+      const parent = fiber.return
+      if (parent === null || parent.tag === HostComponent || parent.tag === HostRoot) {
+        return null
+      }
+      fiber = parent
+    }
+
+    fiber.sibling.return = fiber.return
+    fiber = fiber.sibling
+    while (fiber.tag !== HostText && fiber.tag !== HostComponent) {
+      // 向下遍历
+      if ((fiber.flags & Placement) !== NoFlags) {
+        continue findSibling
+      }
+      if (fiber.child === null) {
+        continue findSibling
+      } else {
+        fiber.child.return = fiber
+        fiber = fiber.child
+      }
+    }
   }
 }
 
@@ -140,10 +177,14 @@ const getHostParent = (fiber: FiberNode): Container | null => {
   return null
 }
 
-const appendPlacementNodeIntoContainer = (finishedWork: FiberNode, hostParent: Container) => {
+const appendPlacementNodeIntoContainer = (finishedWork: FiberNode, hostParent: Container, before?: Instance) => {
   // fiber host
   if (finishedWork.tag == HostComponent || finishedWork.tag == HostText) {
-    appendChildToContainer(hostParent, finishedWork.stateNode)
+    if (before) {
+      inserChildToContainer(finishedWork.stateNode, hostParent, before)
+    } else {
+      appendChildToContainer(hostParent, finishedWork.stateNode)
+    }
     return
   }
 
