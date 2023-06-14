@@ -1,7 +1,8 @@
 import { Props, Key, Ref, ReactElementType } from 'shared/ReactType'
 import { Flags, NoFlags } from './fiberFlags'
 import { Container } from 'hostConfig'
-import { FuntionComponent, HostComponent, WorkTag } from './workTags'
+import { Fragment, FuntionComponent, HostComponent, WorkTag } from './workTags'
+import { Lane, Lanes, NoLane, NoLanes } from './fiberLans'
 
 export class FiberNode {
   type: any
@@ -29,7 +30,7 @@ export class FiberNode {
   constructor(tag: WorkTag, pendingProps: Props, key: Key) {
     // 实例
     this.tag = tag
-    this.key = key
+    this.key = key || null
     // HostComponent  div DOM
     this.stateNode = null
     // FuntionComonent  ()=>{}
@@ -62,11 +63,15 @@ export class FiberRootNode {
   container: Container
   current: FiberNode
   finshedWork: FiberNode | null
+  pendingLanes: Lanes
+  finishedLane: Lane
   constructor(container: Container, hostRootFiber: FiberNode) {
     this.container = container
     this.current = hostRootFiber
     hostRootFiber.stateNode = this
     this.finshedWork = null
+    this.pendingLanes = NoLanes
+    this.finishedLane = NoLane
   }
 }
 
@@ -94,6 +99,10 @@ export const creatWorkInProgress = (current: FiberNode, pendingProps: Props) => 
   wip.memoizedProps = current.memoizedProps
   wip.memoizedState = current.memoizedState
   return wip
+}
+export function creatFiberFromFragment(elelemt: any[], key: Key): FiberNode {
+  const fiber = new FiberNode(Fragment, elelemt, key)
+  return fiber
 }
 
 export function creatFiberFromElement(element: ReactElementType) {

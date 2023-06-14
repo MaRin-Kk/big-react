@@ -1,4 +1,4 @@
-import { REACT_ELEMENT_TYPE } from '../../shared/ReactSymbiols'
+import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE } from '../../shared/ReactSymbiols'
 import { Type, Key, Ref, Props, ReactElementType, ElementType } from '../../shared/ReactType'
 
 const ReactElement = function (type: Type, key: Key, ref: Ref, props: Props): ReactElementType {
@@ -60,3 +60,5 @@ export const jsxDEV = (type: ElementType, config: any) => {
   }
   return ReactElement(type, key, ref, props)
 }
+
+export const Fragment = REACT_FRAGMENT_TYPE

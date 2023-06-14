@@ -56,26 +56,39 @@ const commitMutationEffectsOnFiber = (finishedWork: FiberNode) => {
   }
 }
 
+function recordHostChildrenToDelete(childrenToDelete: FiberNode[], unmountFiber: FiberNode) {
+  // 1.找到第一个root host节点
+
+  let lastOne = childrenToDelete[childrenToDelete.length - 1]
+  if (!lastOne) {
+    childrenToDelete.push(unmountFiber)
+  } else {
+    let node = lastOne.sibling
+    while (node) {
+      if (unmountFiber === node) {
+        childrenToDelete.push(node)
+      }
+      node = node.sibling
+    }
+  }
+  // 2.每找到一个host节点，判断是不是一个
+}
+
 function commitDeletion(childToDelete: FiberNode) {
-  let rootHostNode: FiberNode | null = null
+  let rootChildrenToDelete: FiberNode[] = []
 
   //递归子树
   commitNestedComponent(childToDelete, (unmountFiber) => {
     switch (unmountFiber.tag) {
       case HostComponent:
-        if (rootHostNode === null) {
-          rootHostNode = unmountFiber
-        }
+        recordHostChildrenToDelete(rootChildrenToDelete, unmountFiber)
         // todo 解绑ref
         return
       case HostText:
-        if (rootHostNode === null) {
-          rootHostNode = unmountFiber
-        }
+        recordHostChildrenToDelete(rootChildrenToDelete, unmountFiber)
         return
       case FuntionComponent:
         return
-
       default:
         if (__DEV__) {
           console.log('未处理的umount类型', unmountFiber)
@@ -83,10 +96,12 @@ function commitDeletion(childToDelete: FiberNode) {
     }
   })
 
-  if (rootHostNode) {
+  if (rootChildrenToDelete.length !== 0) {
     const hostParent = getHostParent(childToDelete)
     if (hostParent) {
-      removeChild((rootHostNode as FiberNode).stateNode, hostParent)
+      rootChildrenToDelete.forEach((node) => {
+        removeChild(node.stateNode, hostParent)
+      })
     }
   }
   childToDelete.return = null

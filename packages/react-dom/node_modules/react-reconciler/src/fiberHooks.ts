@@ -4,11 +4,12 @@ import { Action, Type } from 'shared/ReactType'
 import { FiberNode } from './fiber'
 import { createUpdate, createUpdateQueue, enqueueUpdate, processUpdateQueue, UpdateQueue } from './updateQueue'
 import { scheduleUpdateOnFiber } from './workLoop'
+import { Lane, NoLane, requestUpdateLane } from './fiberLans'
 
 let currenlyRenderingFiber: FiberNode | null = null
 let workInProgressHook: Hook | null = null
 let currentHook: Hook | null = null
-
+let renderLane: Lane = NoLane
 interface Hook {
   memoizedState: any
   updateQuque: unknown
@@ -17,12 +18,14 @@ interface Hook {
 
 const { currentDispatcher } = internals
 
-export function renderWithHooks(wip: FiberNode) {
+export function renderWithHooks(wip: FiberNode, lane: Lane) {
   // 赋值操作
   currenlyRenderingFiber = wip
 
   // 重置
   wip.memoizedState = null
+
+  renderLane = lane
 
   const current = wip.alternate
   if (current) {
@@ -39,7 +42,7 @@ export function renderWithHooks(wip: FiberNode) {
   currenlyRenderingFiber = null
   workInProgressHook = null
   currentHook = null
-
+  renderLane = NoLane
   return children
 }
 
@@ -76,8 +79,11 @@ function updateState<State>(): [State, Dispatch<State>] {
   // 计算新state的逻辑
   const queue = hook.updateQuque as UpdateQueue<State>
   const pending = queue.shared.pending
+  // lane模型，卡松老师放开了 但是我这边放开会有问题
+  // queue.shared.pending = null
+
   if (pending !== null) {
-    const { memoizedState } = processUpdateQueue(hook.memoizedState, pending)
+    const { memoizedState } = processUpdateQueue(hook.memoizedState, pending, renderLane)
     hook.memoizedState = memoizedState
   }
 
@@ -85,9 +91,10 @@ function updateState<State>(): [State, Dispatch<State>] {
 }
 
 function dispatchSetState<State>(fiber: FiberNode, updateQueue: UpdateQueue<State>, action: Action<State>) {
-  const update = createUpdate(action)
+  const lane = requestUpdateLane()
+  const update = createUpdate(action, lane)
   enqueueUpdate(updateQueue, update)
-  scheduleUpdateOnFiber(fiber)
+  scheduleUpdateOnFiber(fiber, lane)
 }
 
 function mountWorkInProgressHook(): Hook {

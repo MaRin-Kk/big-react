@@ -1,8 +1,9 @@
-import { REACT_ELEMENT_TYPE } from 'shared/ReactSymbiols'
+import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE } from 'shared/ReactSymbiols'
 import { Props, ReactElementType } from 'shared/ReactType'
-import { creatFiberFromElement, creatWorkInProgress, FiberNode } from './fiber'
+import { creatFiberFromElement, creatFiberFromFragment, creatWorkInProgress, FiberNode } from './fiber'
 import { ChildDeletion, Placement } from './fiberFlags'
-import { HostText } from './workTags'
+import { Fragment, HostText } from './workTags'
+import { Key } from 'react'
 
 type ExistingChildren = Map<string | number, FiberNode>
 
@@ -42,8 +43,12 @@ function ChildReconciler(shoukdTrackEffects: boolean) {
         //key相同
         if (element.$$typeof === REACT_ELEMENT_TYPE) {
           if (currentFiber.type === element.type) {
+            let props = element.props
+            if (element.type === REACT_FRAGMENT_TYPE) {
+              props = element.props.children
+            }
             //type相同
-            const existing = useFiber(currentFiber, element.props)
+            const existing = useFiber(currentFiber, props)
             existing.return = returnFiber
             // 当前节点可复用，标记剩下的节点删除
             deleteRemainingChildren(returnFiber, currentFiber.sibling)
@@ -64,7 +69,13 @@ function ChildReconciler(shoukdTrackEffects: boolean) {
         currentFiber = currentFiber.sibling
       }
     }
-    const fiber = creatFiberFromElement(element)
+    let fiber
+    if (element.type === REACT_ELEMENT_TYPE) {
+      fiber = creatFiberFromFragment(element.props.children, key)
+    } else {
+      fiber = creatFiberFromElement(element)
+    }
+
     fiber.return = returnFiber
     return fiber
   }
@@ -158,13 +169,22 @@ function ChildReconciler(shoukdTrackEffects: boolean) {
   ): FiberNode | null {
     const keyToUse = element.key || index
     const before = existingChildren.get(keyToUse)
+
     if (before && before.tag === HostText) {
       existingChildren.delete(keyToUse)
       return useFiber(before, { content: element + ' ' })
     }
     if (typeof element === 'object' && element) {
+      if (Array.isArray(element)) {
+        return updateFragment(returnFiber, before, element, keyToUse, existingChildren)
+      }
+
       switch (element.$$typeof) {
         case REACT_ELEMENT_TYPE:
+          if (element.type === REACT_FRAGMENT_TYPE) {
+            return updateFragment(returnFiber, before, element, keyToUse, existingChildren)
+          }
+
           if (before && before?.type === element.type) {
             existingChildren.delete(keyToUse)
             return useFiber(before, element.props)
@@ -175,6 +195,7 @@ function ChildReconciler(shoukdTrackEffects: boolean) {
         console.log('还未实现数组类型的child')
       }
     }
+
     return null
   }
 
@@ -187,11 +208,17 @@ function ChildReconciler(shoukdTrackEffects: boolean) {
     return fiber
   }
 
-  return function recocileChildFibers(
-    returnFiber: FiberNode,
-    currentFiber: FiberNode | null,
-    newChild?: ReactElementType
-  ) {
+  return function recocileChildFibers(returnFiber: FiberNode, currentFiber: FiberNode | null, newChild?: any) {
+    const isUnkeyedToplevelFragment =
+      typeof newChild === 'object' &&
+      newChild !== null &&
+      newChild.type === REACT_FRAGMENT_TYPE &&
+      newChild.key === null
+
+    if (isUnkeyedToplevelFragment) {
+      newChild = newChild?.props.children
+    }
+
     // 判断fiber的类型
     if (typeof newChild === 'object' && newChild !== null) {
       switch (newChild.$$typeof) {
@@ -236,4 +263,22 @@ function useFiber(fiber: FiberNode, pendingProps: Props): FiberNode {
   clone.index = 0
   clone.sibling = null
   return clone
+}
+
+function updateFragment(
+  returnFiber: FiberNode,
+  current: FiberNode | undefined,
+  elements: any[],
+  key: Key,
+  existingChildren: ExistingChildren
+) {
+  let fiber
+  if (!current || current.tag !== Fragment) {
+    fiber = creatFiberFromFragment(elements, key)
+  } else {
+    existingChildren.delete(key)
+    fiber = useFiber(current, elements)
+  }
+  fiber.return = returnFiber
+  return fiber
 }
