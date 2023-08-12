@@ -112,7 +112,7 @@ function ChildReconciler(shoukdTrackEffects: boolean) {
     let current = currentFirstFiber
 
     while (current) {
-      const keyToUse = current.key ? current.key : current.index
+      const keyToUse = current.key || current.index
       existingChildren.set(keyToUse, current)
       current = current.sibling
     }

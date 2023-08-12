@@ -1,34 +1,31 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 
 
 function App() {
-  const [num, setNum] = useState(100)
-  console.log(num);
+  const [num, setNum] = useState(0)
 
-  // const arr = num % 2 === 0 ? [
-  //   <li key='1'>1</li>,
-  //   <li key='2'>2</li>,
-  //   <li key='3'>3</li>
-  // ] : [
-  //   <li key='3'>3</li>,
-  //   <li key='2'>2</li>,
-  //   <li key='1'>1</li>
-  // ]
-  return <ul onClick={() => {
-    setNum(num => num + 1)
-    setNum(num => num + 1)
-    setNum(num => num + 1)
-  }}>
-    {num}
+  useEffect(() => {
+    console.log('app mount');
+  }, [])
+
+  useEffect(() => {
+    console.log('number change creat', num);
+    return () => console.log('number change destory', num)
+  }, [num])
+  return <ul onClick={() => setNum(num => num + 1)}>
+    {num === 0 ? <Child /> : 'noop'}
   </ul>
-
-
-  return <ul onClick={() => setNum(num + 1)} >{arr}</ul>
 }
 
 function Child() {
-  return <span>big-react</span>
+
+  useEffect(() => {
+    console.log('child mount');
+    return () => console.log('child unmount')
+  }, [])
+
+  return '123'
 }
 const jsx = (
   <div>

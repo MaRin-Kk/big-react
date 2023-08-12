@@ -1,15 +1,23 @@
 import { scheduleMicroTask } from 'hostConfig'
+import { unstable_scheduleCallback as scheduleCallback, unstable_NormalPriority as NomalPriority } from 'scheduler'
 import { beginWork } from './beginWork'
-import { commitMutationEffects } from './commitWork'
+import {
+  commitHookEffectListCreate,
+  commitHookEffectListDestory,
+  commitHookEffectListUnmount,
+  commitMutationEffects
+} from './commitWork'
 import { completeWork } from './completeWork'
-import { creatWorkInProgress, FiberNode, FiberRootNode } from './fiber'
-import { MutationMask, NoFlags } from './fiberFlags'
+import { creatWorkInProgress, FiberNode, FiberRootNode, PendingPasssiveEffects } from './fiber'
+import { MutationMask, NoFlags, PassiveMask } from './fiberFlags'
 import { getHeightPriortyLane, Lane, markRootFinished, mergeLanes, NoLane, SyncLane } from './fiberLans'
 import { flushSyncCallbacks, scheduleSyncCallback } from './syncTaskQueue'
 import { HostRoot } from './workTags'
+import { HookHasEffect, Passive } from './hooksEffectTags'
 
 let workInProgress: FiberNode | null = null
 let wipRootRenderLane: Lane = NoLane
+let rootDoesHasPassEffects: boolean = false
 
 function prepareFreshStack(root: FiberRootNode, lane: Lane) {
   workInProgress = creatWorkInProgress(root.current, {})
@@ -111,6 +119,17 @@ function commitRoot(root: FiberRootNode) {
 
   markRootFinished(root, lane)
 
+  if ((finshedWork.flags & PassiveMask) !== NoFlags || (finshedWork.subtreeFlags & PassiveMask) !== NoFlags) {
+    if (!rootDoesHasPassEffects) {
+      rootDoesHasPassEffects = true
+      // 调度副作用
+      scheduleCallback(NomalPriority, () => {
+        // 执行副作用
+        flushPassiveEffects(root.pendingPasssiveEffects)
+        return
+      })
+    }
+  }
   // 判断是否存在三个子阶段需要执行的操作
   // root flags root subtreeFlags
   const subtreeHasEffect = (finshedWork.subtreeFlags & MutationMask) !== NoFlags
@@ -118,12 +137,32 @@ function commitRoot(root: FiberRootNode) {
   if (subtreeHasEffect || rootHasEffect) {
     // beforeMutation
     // mutataion  Placement
-    commitMutationEffects(finshedWork)
+    commitMutationEffects(finshedWork, root)
     root.current = finshedWork
     // layout
   } else {
     root.current = finshedWork
   }
+
+  rootDoesHasPassEffects = false
+  ensureRootIsScheduled(root)
+}
+
+function flushPassiveEffects(pendingPasssiveEffects: PendingPasssiveEffects) {
+  pendingPasssiveEffects.unmount.forEach((effect) => {
+    commitHookEffectListUnmount(Passive, effect)
+  })
+  pendingPasssiveEffects.unmount = []
+
+  pendingPasssiveEffects.update.forEach((effect) => {
+    commitHookEffectListDestory(Passive | HookHasEffect, effect)
+  })
+
+  pendingPasssiveEffects.update.forEach((effect) => {
+    commitHookEffectListCreate(Passive | HookHasEffect, effect)
+  })
+  pendingPasssiveEffects.update = []
+  flushSyncCallbacks()
 }
 
 function workLoop() {
