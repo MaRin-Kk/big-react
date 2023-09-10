@@ -1,4 +1,5 @@
 import { Container } from 'hostConfig'
+import { DefaultLane, InputContinuousLane, SyncLane } from 'react-reconciler/src/fiberLans'
 import { unstable_runWithPriority } from 'scheduler'
 import { Props } from 'shared/ReactType'
 
@@ -69,7 +70,7 @@ function triggerEventFlow(paths: EventCallBack[], se: SysEvent) {
     const callback = paths[i]
 
     unstable_runWithPriority(eventTypeToEventPriority(se.type), () => {
-    callback.call(null, se)
+      callback.call(null, se)
     })
 
     if (se._stopPropagation) {
@@ -110,15 +111,15 @@ function collectPaths(target: DOMElement, container: Container, eventType: strin
 }
 
 const eventTypeToEventPriority = (eventType: string) => {
-	switch (eventType) {
-		case 'click':
-		case 'keydown':
-		case 'keyup':
-			return SyncLane;
-		case 'scroll':
-			return InputContinuousLane;
-		// TODO 更多事件类型
-		default:
-			return DefaultLane;
-	}
-};
+  switch (eventType) {
+    case 'click':
+    case 'keydown':
+    case 'keyup':
+      return SyncLane
+    case 'scroll':
+      return InputContinuousLane
+    // TODO 更多事件类型
+    default:
+      return DefaultLane
+  }
+}

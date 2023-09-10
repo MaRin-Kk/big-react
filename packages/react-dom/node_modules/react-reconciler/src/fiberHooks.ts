@@ -249,62 +249,75 @@ function mountWorkInProgressHook(): Hook {
   const hook: Hook = {
     memoizedState: null,
     updateQueue: null,
+    baseQueue: null,
+    baseState: null,
     next: null
   }
   if (workInProgressHook === null) {
-    // mount 时第一个hook
     if (currentlyRenderingFiber === null) {
-      throw new Error('请在函数组件内部使用hook')
+      console.error('mountWorkInprogressHook时currentlyRenderingFiber未定义')
     } else {
-      workInProgressHook = hook
-      currentlyRenderingFiber.memoizedState = workInProgressHook
+      currentlyRenderingFiber.memoizedState = workInProgressHook = hook
     }
   } else {
-    // mount 后续的hook
-    workInProgressHook.next = hook
-    workInProgressHook = hook
+    workInProgressHook = workInProgressHook.next = hook
   }
-  return workInProgressHook
+  return workInProgressHook as Hook
 }
 
 function updateWorkInProgressHook(): Hook {
+  // 情况1:交互触发的更新，此时wipHook还不存在，复用 currentHook链表中对应的 hook 克隆 wipHook
+  // 情况2:render阶段触发的更新，wipHook已经存在，使用wipHook
   let nextCurrentHook: Hook | null
+  let nextWorkInProgressHook: Hook | null
 
-  // FC update时的第一个hook
   if (currentHook === null) {
-    const current = currentlyRenderingFiber?.alternate
+    // 情况1 当前组件的第一个hook
+    const current = (currentlyRenderingFiber as FiberNode).alternate
     if (current !== null) {
-      nextCurrentHook = current?.memoizedState
+      nextCurrentHook = current.memoizedState
     } else {
       nextCurrentHook = null
     }
   } else {
-    // FC update时后续的hook
     nextCurrentHook = currentHook.next
   }
 
-  if (nextCurrentHook === null) {
-    throw new Error(`组件${currentlyRenderingFiber?.type}本次执行时比上次执行时多`)
+  if (workInProgressHook === null) {
+    // 情况2 当前组件的第一个hook
+    nextWorkInProgressHook = (currentlyRenderingFiber as FiberNode).memoizedState
+  } else {
+    nextWorkInProgressHook = workInProgressHook.next
   }
 
-  currentHook = nextCurrentHook as Hook
-  const newHook: Hook = {
-    memoizedState: currentHook.memoizedState,
-    updateQueue: currentHook.updateQueue,
-    next: null
-  }
-  if (workInProgressHook === null) {
-    // mount 时第一个hook
-    if (currentlyRenderingFiber === null) {
-      throw new Error('请在函数组件内部使用hook')
-    } else {
-      workInProgressHook = newHook
-      currentlyRenderingFiber.memoizedState = workInProgressHook
-    }
+  if (nextWorkInProgressHook !== null) {
+    // 针对情况2 nextWorkInProgressHook保存了当前hook的数据
+    workInProgressHook = nextWorkInProgressHook
+    currentHook = nextCurrentHook
   } else {
-    // mount 后续的hook
-    workInProgressHook.next = newHook
-    workInProgressHook = newHook
+    // 针对情况1 nextCurrentHook保存了可供克隆的hook数据
+    if (nextCurrentHook === null) {
+      // 本次render当前组件执行的hook比之前多，举个例子：
+      // 之前：hook1 -> hook2 -> hook3
+      // 本次：hook1 -> hook2 -> hook3 -> hook4
+      // 那到了hook4，nextCurrentHook就为null
+      console.error(`组件${currentlyRenderingFiber?.type}本次执行的hook比上次多`)
+    }
+    currentHook = nextCurrentHook as Hook
+    const newHook: Hook = {
+      memoizedState: currentHook.memoizedState,
+      // 对于state，保存update相关数据
+      updateQueue: currentHook.updateQueue,
+      baseState: currentHook.baseState,
+      baseQueue: currentHook.baseQueue,
+      next: null
+    }
+
+    if (workInProgressHook === null) {
+      ;(currentlyRenderingFiber as FiberNode).memoizedState = workInProgressHook = newHook
+    } else {
+      workInProgressHook = workInProgressHook.next = newHook
+    }
   }
-  return workInProgressHook
+  return workInProgressHook as Hook
 }
